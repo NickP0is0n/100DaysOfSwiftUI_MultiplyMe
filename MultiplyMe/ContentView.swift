@@ -55,6 +55,7 @@ struct ContentView: View {
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var showingAlert = false
+    @State private var endGameAlert = false
     
     @State private var isGameStarted = false
     
@@ -117,6 +118,11 @@ struct ContentView: View {
                         } message: {
                             Text(alertMessage)
                         }
+                        .alert(alertTitle, isPresented: $endGameAlert) {
+                            Button("OK", action: resetGame)
+                        } message: {
+                            Text(alertMessage)
+                        }
                         
                         Spacer()
                     }
@@ -135,7 +141,7 @@ struct ContentView: View {
     }
     
     func generateQuestions() {
-        for _ in 0..<(Int(selectedQuestionAmount) ?? 2) {
+        for _ in 0..<((Int(selectedQuestionAmount) ?? 4 + 1) ) {
             let secondNumber = Int.random(in: 2..<10)
             questions.append("What is \(selectedMultiplicationTable) times \(secondNumber)?")
             rightAnswers.append(selectedMultiplicationTable * secondNumber)
@@ -153,8 +159,15 @@ struct ContentView: View {
     }
     
     func nextQuestion() {
-        currentQuestion += 1
-        generateAnswers()
+        if currentQuestion == questions.count - 1 {
+            alertTitle = "Game over"
+            alertMessage = "You finished your path, congratulations!\nYour final score: \(score).\nThank you for playing."
+            endGameAlert = true
+        }
+        else {
+            currentQuestion += 1
+            generateAnswers()
+        }
     }
     
     func checkAnswer() {
@@ -167,6 +180,12 @@ struct ContentView: View {
             alertMessage = "This is not right :( Right answer was \(rightAnswers[currentQuestion]).\nYour score: \(score)."
         }
         showingAlert = true
+    }
+    
+    func resetGame() {
+        currentQuestion = 0
+        selectedAnswer = -1
+        isGameStarted = false
     }
 }
 
