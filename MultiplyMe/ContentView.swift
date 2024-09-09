@@ -18,9 +18,24 @@ struct RoundedRectangleStyle: ViewModifier {
     }
 }
 
+struct RoundedRectangleMaterialStyle: ViewModifier {
+    var material: Material
+    
+    func body(content: Content) -> some View {
+        content
+        .padding()
+        .background(material)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+    }
+}
+
 extension View {
     func roundedRectangleStyle(color: Color) -> some View {
         modifier(RoundedRectangleStyle(color: color))
+    }
+    
+    func roundedRectangleStyle(material: Material) -> some View {
+        modifier(RoundedRectangleMaterialStyle(material: material))
     }
 }
 
@@ -34,13 +49,23 @@ struct ContentView: View {
     @State private var rightAnswers = [Int]()
     @State private var possibleAnswers = [Int]()
     @State private var currentQuestion = 0
+    @State private var selectedAnswer = -1
+    
+    @State private var score = 0
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var showingAlert = false
     
     @State private var isGameStarted = false
     
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(colors: [Color(red: 255 / 255, green: 190 / 255, blue: 176 / 255), Color(red: 255 / 255, green: 110 / 255, blue: 106 / 255)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [
+                    Color(red: 0.7, green: 0.9, blue: 0.9), // Soft pastel cyan
+                    Color(red: 0.6, green: 0.8, blue: 1.0), // Soft pastel blue
+                    Color(red: 1.0, green: 0.8, blue: 0.9)  // Soft pastel pink
+                ], startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
                 VStack {
                     VStack(alignment: .leading) {
@@ -61,12 +86,12 @@ struct ContentView: View {
                         }
                         .pickerStyle(.segmented)
                     }
-                    .roundedRectangleStyle(color: .white)
+                    .roundedRectangleStyle(material: .thick)
                     
                     Button("Start new game") {
                         startGame()
                     }
-                    .roundedRectangleStyle(color: .white)
+                    .roundedRectangleStyle(material: .thick)
                     
                     Spacer()
                     
@@ -74,17 +99,25 @@ struct ContentView: View {
                         VStack {
                             Text(questions[currentQuestion])
                             HStack {
-                                ForEach(0..<possibleAnswers.count, id: \.self) {
-                                    Button("\(possibleAnswers[$0])") {
-                                        
+                                ForEach(0..<possibleAnswers.count, id: \.self) { selected in
+                                    Button("\(possibleAnswers[selected])") {
+                                        selectedAnswer = selected
+                                        checkAnswer()
                                     }
-                                    .font(.largeTitle)
+                                    .font(.title.bold())
                                     .foregroundStyle(.white)
-                                    .roundedRectangleStyle(color: .blue)
+                                    .roundedRectangleStyle(color: Color(red: 105 / 255, green: 0 / 255, blue: 168 / 255))
                                 }
                             }
                         }
-                        .roundedRectangleStyle(color: .white)
+                        .padding()
+                        .roundedRectangleStyle(material: .thick)
+                        .alert(alertTitle, isPresented: $showingAlert) {
+                            Button("Next", action: nextQuestion)
+                        } message: {
+                            Text(alertMessage)
+                        }
+                        
                         Spacer()
                     }
                         
@@ -117,6 +150,23 @@ struct ContentView: View {
             possibleAnswers.append(Int.random(in: 1..<(rightAnswers[currentQuestion] + 10)))
         }
         possibleAnswers.shuffle()
+    }
+    
+    func nextQuestion() {
+        currentQuestion += 1
+        generateAnswers()
+    }
+    
+    func checkAnswer() {
+        if possibleAnswers[selectedAnswer] == rightAnswers[currentQuestion] {
+            score += 100
+            alertTitle = "You are correct!"
+            alertMessage = "The answer is indeed \(rightAnswers[currentQuestion]).\nGood job! Your score: \(score)."
+        } else {
+            alertTitle = "Oops..."
+            alertMessage = "This is not right :( Right answer was \(rightAnswers[currentQuestion]).\nYour score: \(score)."
+        }
+        showingAlert = true
     }
 }
 
