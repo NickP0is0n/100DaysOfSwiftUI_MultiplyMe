@@ -29,6 +29,11 @@ struct RoundedRectangleMaterialStyle: ViewModifier {
     }
 }
 
+struct Question {
+    let question: String
+    let answer: Int
+}
+
 extension View {
     func roundedRectangleStyle(color: Color) -> some View {
         modifier(RoundedRectangleStyle(color: color))
@@ -45,8 +50,7 @@ struct ContentView: View {
     @State private var selectedMultiplicationTable = 2
     @State private var selectedQuestionAmount = "5"
     
-    @State private var questions = [String]()
-    @State private var rightAnswers = [Int]()
+    @State private var questions = [Question]()
     @State private var possibleAnswers = [Int]()
     @State private var currentQuestion = 0
     @State private var selectedAnswer = -1
@@ -98,7 +102,7 @@ struct ContentView: View {
                     
                     if isGameStarted {
                         VStack {
-                            Text(questions[currentQuestion])
+                            Text(questions[currentQuestion].question)
                             HStack {
                                 ForEach(0..<possibleAnswers.count, id: \.self) { selected in
                                     Button("\(possibleAnswers[selected])") {
@@ -143,17 +147,16 @@ struct ContentView: View {
     func generateQuestions() {
         for _ in 0..<((Int(selectedQuestionAmount) ?? 4 + 1) ) {
             let secondNumber = Int.random(in: 2..<10)
-            questions.append("What is \(selectedMultiplicationTable) times \(secondNumber)?")
-            rightAnswers.append(selectedMultiplicationTable * secondNumber)
+            questions.append(Question(question: "What is \(selectedMultiplicationTable) times \(secondNumber)?", answer: selectedMultiplicationTable * secondNumber))
         }
     }
     
     func generateAnswers() {
         possibleAnswers.removeAll(keepingCapacity: true)
-        possibleAnswers.append(rightAnswers[currentQuestion])
+        possibleAnswers.append(questions[currentQuestion].answer)
         
         for _ in 0..<3 {
-            possibleAnswers.append(Int.random(in: 1..<(rightAnswers[currentQuestion] + 10)))
+            possibleAnswers.append(Int.random(in: 1..<(questions[currentQuestion].answer + 10)))
         }
         possibleAnswers.shuffle()
     }
@@ -171,13 +174,13 @@ struct ContentView: View {
     }
     
     func checkAnswer() {
-        if possibleAnswers[selectedAnswer] == rightAnswers[currentQuestion] {
+        if possibleAnswers[selectedAnswer] == questions[currentQuestion].answer {
             score += 100
             alertTitle = "You are correct!"
-            alertMessage = "The answer is indeed \(rightAnswers[currentQuestion]).\nGood job! Your score: \(score)."
+            alertMessage = "The answer is indeed \(questions[currentQuestion].answer).\nGood job! Your score: \(score)."
         } else {
             alertTitle = "Oops..."
-            alertMessage = "This is not right :( Right answer was \(rightAnswers[currentQuestion]).\nYour score: \(score)."
+            alertMessage = "This is not right :( Right answer was \(questions[currentQuestion].answer).\nYour score: \(score)."
         }
         showingAlert = true
     }
@@ -185,6 +188,7 @@ struct ContentView: View {
     func resetGame() {
         currentQuestion = 0
         selectedAnswer = -1
+        score = 0
         isGameStarted = false
     }
 }
