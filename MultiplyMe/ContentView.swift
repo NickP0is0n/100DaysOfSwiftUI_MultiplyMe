@@ -87,6 +87,8 @@ struct ContentView: View {
     
     @State private var isGameStarted = false
     
+    @State private var questionOpacity = 0.0
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -129,6 +131,9 @@ struct ContentView: View {
                             selectedAnswer = answer
                             checkAnswer()
                         }
+                        .transition(.move(edge: .top))
+                        .opacity(questionOpacity)
+                        .animation(.easeInOut(duration: 1.5), value: questionOpacity)
                         
                         Spacer()
                     }
@@ -150,10 +155,13 @@ struct ContentView: View {
     }
     
     func startGame() {
-        questions.removeAll()
-        generateQuestions()
-        isGameStarted = true
-        generateAnswers()
+        withAnimation(.easeInOut(duration: 1.5)) {
+            questions.removeAll()
+            generateQuestions()
+            isGameStarted = true
+            generateAnswers()
+            questionOpacity = 1.0
+        }
     }
     
     func generateQuestions() {
@@ -174,14 +182,16 @@ struct ContentView: View {
     }
     
     func nextQuestion() {
-        if currentQuestion == questions.count - 1 {
-            alertTitle = "Game over"
-            alertMessage = "You finished your path, congratulations!\nYour final score: \(score).\nThank you for playing."
-            endGameAlert = true
-        }
-        else {
-            currentQuestion += 1
-            generateAnswers()
+        withAnimation {
+            if currentQuestion == questions.count - 1 {
+                alertTitle = "Game over"
+                alertMessage = "You finished your path, congratulations!\nYour final score: \(score).\nThank you for playing."
+                endGameAlert = true
+            }
+            else {
+                currentQuestion += 1
+                generateAnswers()
+            }
         }
     }
     
@@ -198,10 +208,13 @@ struct ContentView: View {
     }
     
     func resetGame() {
-        currentQuestion = 0
-        selectedAnswer = -1
-        score = 0
-        isGameStarted = false
+        withAnimation(.easeInOut(duration: 1.5)) {
+            currentQuestion = 0
+            selectedAnswer = -1
+            score = 0
+            isGameStarted = false
+            questionOpacity = 0.0
+        }
     }
 }
 
