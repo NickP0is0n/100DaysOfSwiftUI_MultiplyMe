@@ -34,6 +34,30 @@ struct Question {
     let answer: Int
 }
 
+struct QuestionView: View {
+    var question: Question
+    var possibleAnswers: [Int]
+    var onAnswer: (Int) -> Void
+    
+    var body: some View {
+        VStack {
+            Text(question.question)
+            HStack {
+                ForEach(0..<possibleAnswers.count, id: \.self) { selected in
+                    Button("\(possibleAnswers[selected])") {
+                        onAnswer(selected)
+                    }
+                    .font(.title.bold())
+                    .foregroundStyle(.white)
+                    .roundedRectangleStyle(color: Color(red: 105 / 255, green: 0 / 255, blue: 168 / 255))
+                }
+            }
+        }
+        .padding()
+        .roundedRectangleStyle(material: .thick)
+    }
+}
+
 extension View {
     func roundedRectangleStyle(color: Color) -> some View {
         modifier(RoundedRectangleStyle(color: color))
@@ -101,31 +125,9 @@ struct ContentView: View {
                     Spacer()
                     
                     if isGameStarted {
-                        VStack {
-                            Text(questions[currentQuestion].question)
-                            HStack {
-                                ForEach(0..<possibleAnswers.count, id: \.self) { selected in
-                                    Button("\(possibleAnswers[selected])") {
-                                        selectedAnswer = selected
-                                        checkAnswer()
-                                    }
-                                    .font(.title.bold())
-                                    .foregroundStyle(.white)
-                                    .roundedRectangleStyle(color: Color(red: 105 / 255, green: 0 / 255, blue: 168 / 255))
-                                }
-                            }
-                        }
-                        .padding()
-                        .roundedRectangleStyle(material: .thick)
-                        .alert(alertTitle, isPresented: $showingAlert) {
-                            Button("Next", action: nextQuestion)
-                        } message: {
-                            Text(alertMessage)
-                        }
-                        .alert(alertTitle, isPresented: $endGameAlert) {
-                            Button("OK", action: resetGame)
-                        } message: {
-                            Text(alertMessage)
+                        QuestionView(question: questions[currentQuestion], possibleAnswers: possibleAnswers) { answer in
+                            selectedAnswer = answer
+                            checkAnswer()
                         }
                         
                         Spacer()
@@ -133,6 +135,16 @@ struct ContentView: View {
                         
                 }
                 .padding()
+                .alert(alertTitle, isPresented: $showingAlert) {
+                    Button("Next", action: nextQuestion)
+                } message: {
+                    Text(alertMessage)
+                }
+                .alert(alertTitle, isPresented: $endGameAlert) {
+                    Button("OK", action: resetGame)
+                } message: {
+                    Text(alertMessage)
+                }
             }
         }
     }
