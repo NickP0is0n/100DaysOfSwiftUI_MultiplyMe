@@ -32,6 +32,10 @@ struct ContentView: View {
     
     @State private var questions = [String]()
     @State private var rightAnswers = [Int]()
+    @State private var possibleAnswers = [Int]()
+    @State private var currentQuestion = 0
+    
+    @State private var isGameStarted = false
     
     var body: some View {
         NavigationStack {
@@ -60,11 +64,29 @@ struct ContentView: View {
                     .roundedRectangleStyle(color: .white)
                     
                     Button("Start new game") {
-                        
+                        startGame()
                     }
                     .roundedRectangleStyle(color: .white)
                     
                     Spacer()
+                    
+                    if isGameStarted {
+                        VStack {
+                            Text(questions[currentQuestion])
+                            HStack {
+                                ForEach(0..<possibleAnswers.count, id: \.self) {
+                                    Button("\(possibleAnswers[$0])") {
+                                        
+                                    }
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.white)
+                                    .roundedRectangleStyle(color: .blue)
+                                }
+                            }
+                        }
+                        .roundedRectangleStyle(color: .white)
+                        Spacer()
+                    }
                         
                 }
                 .padding()
@@ -73,11 +95,28 @@ struct ContentView: View {
     }
     
     func startGame() {
-        
+        questions.removeAll()
+        generateQuestions()
+        isGameStarted = true
+        generateAnswers()
     }
     
     func generateQuestions() {
+        for _ in 0..<(Int(selectedQuestionAmount) ?? 2) {
+            let secondNumber = Int.random(in: 2..<10)
+            questions.append("What is \(selectedMultiplicationTable) times \(secondNumber)?")
+            rightAnswers.append(selectedMultiplicationTable * secondNumber)
+        }
+    }
+    
+    func generateAnswers() {
+        possibleAnswers.removeAll(keepingCapacity: true)
+        possibleAnswers.append(rightAnswers[currentQuestion])
         
+        for _ in 0..<3 {
+            possibleAnswers.append(Int.random(in: 1..<(rightAnswers[currentQuestion] + 10)))
+        }
+        possibleAnswers.shuffle()
     }
 }
 
