@@ -87,8 +87,6 @@ struct ContentView: View {
     
     @State private var isGameStarted = false
     
-    @State private var questionOpacity = 0.0
-    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -131,9 +129,7 @@ struct ContentView: View {
                             selectedAnswer = answer
                             checkAnswer()
                         }
-                        .transition(.move(edge: .top))
-                        .opacity(questionOpacity)
-                        .animation(.easeInOut(duration: 1.5), value: questionOpacity)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                         
                         Spacer()
                     }
@@ -160,7 +156,6 @@ struct ContentView: View {
             generateQuestions()
             isGameStarted = true
             generateAnswers()
-            questionOpacity = 1.0
         }
     }
     
@@ -213,7 +208,6 @@ struct ContentView: View {
             selectedAnswer = -1
             score = 0
             isGameStarted = false
-            questionOpacity = 0.0
         }
     }
 }
